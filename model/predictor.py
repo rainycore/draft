@@ -51,18 +51,26 @@ class WeekViT(nn.Module):
 
     def forward(self, x):  # x: [B, 7, 1, H, W]
         B, T, C, H, W = x.shape
-        x = x.view(B * T, C, H, W)
+        
+        # SAFER: reshape instead of view
+        x = x.reshape(B * T, C, H, W)  # [B*T, 1, H, W]
         patches = self.patch_embed(x)  # [B*T, N, D]
+        
         patches = patches.reshape(B, T, self.num_patches, -1)  # [B, T, N, D]
-        patches = self.temporal_pe(patches)
+        patches = self.temporal_pe(patches)                   # [B, T, N, D]
+        
         tokens = patches.reshape(B, T * self.num_patches, -1).permute(1, 0, 2)  # [seq_len, B, D]
         encoded = self.encoder(tokens)  # [seq_len, B, D]
+        
         last_frame = encoded[-self.num_patches:]  # [N, B, D]
-        decoded = self.decoder(last_frame)  # [N, B, patch_area]
-        decoded = decoded.permute(1, 0, 2)  # [B, N, patch_area]
-        H_p = W_p = int(np.sqrt(self.num_patches))
-        out = decoded.reshape(B, 1, H_p, W_p, PATCH_SIZE, PATCH_SIZE)
-        out = out.permute(0, 1, 2, 4, 3, 5).reshape(B, 1, IMAGE_SIZE, IMAGE_SIZE)
+        decoded = self.decoder(last_frame)        # [N, B, patch_area]
+        decoded = decoded.permute(1, 0, 2)        # [B, N, patch_area]
+        
+        # Grid dimensions for patches
+        H_p = W_p = int(np.sqrt(self.num_patches))  # e.g. 4x4 for 16 patches
+        out = decoded.reshape(B, H_p, W_p, PATCH_SIZE, PATCH_SIZE)  # [B, H_p, W_p, p, p]
+        out = out.permute(0, 3, 1, 4, 2, 5).reshape(B, 1, IMAGE_SIZE, IMAGE_SIZE)  # [B, 1, H, W]
+        
         return out
 
 # ---- Data Loader ---- #

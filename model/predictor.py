@@ -113,3 +113,15 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+def get_week8_prediction():
+    weeks = week_data()
+    x, _ = prepare_input(weeks)
+
+    model = WeekViT(IMAGE_SIZE, PATCH_SIZE, EMBED_DIM, NUM_HEADS, NUM_LAYERS).to(DEVICE)
+    model.eval()
+
+    with torch.no_grad():
+        pred = model(x)  # shape: [1, 1, H, W]
+
+    return pred.squeeze().cpu().numpy()  # shape: [H, W]

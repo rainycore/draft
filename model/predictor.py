@@ -65,17 +65,33 @@ class WeekViT(nn.Module):
         out = out.permute(0, 1, 2, 4, 3, 5).reshape(B, 1, IMAGE_SIZE, IMAGE_SIZE)
         return out
 
-# ---- Dummy Loader ---- #
-def load_dummy_week_data():
-    return [xr.DataArray(np.random.rand(168, IMAGE_SIZE, IMAGE_SIZE)) for _ in range(NUM_WEEKS)]
-
+# ---- Data Loader ---- #
+def week_data():
+    dataset = xr.open_zarr('/notebook_dir/public/mickellals-public/goes-16-2003-10-weeks.tmp.zarr')
+    ds = dataset.assign_coords(lon=((dataset.lon + 180) % 360 - 180))
+    cmic13 = ds["CMI_C13"].sel(
+        lat=slice(25, 45),   
+        lon=slice(-86, -63)  
+    )
+    weekly_means = []
+    for i in range(10):
+        week = cmic13.isel(t=slice(i * 168, (i + 1) * 168))
+        week_mean = week.mean(dim='t')
+        weekly_means.append(week_mean)
+    return weekly_means
+    
 def prepare_input(weeks):
-    input_weeks = weeks[:7]  # predict week 8
-    target = weeks[7].mean(dim='t')  # weekly average
+    input_weeks = weeks[:7]   # use Weeks 0–6 to predict Week 7
+    target = weeks[7]         # Week 7 = Week 8 in 1-based count
+
     input_tensor = torch.stack([
-        torch.tensor(w.values).float().mean(dim=0).unsqueeze(0) for w in input_weeks
-    ])  # [7, 1, H, W]
-    return input_tensor.unsqueeze(0).to(DEVICE), torch.tensor(target.values).unsqueeze(0).unsqueeze(0).to(DEVICE)
+        torch.tensor(w.values).float().unsqueeze(0) for w in input_weeks
+    ])  # shape: [7, 1, H, W]
+
+    return (
+        input_tensor.unsqueeze(0).to(DEVICE),    # [1, 7, 1, H, W]
+        torch.tensor(target.values).unsqueeze(0).unsqueeze(0).to(DEVICE)  # [1, 1, H, W]
+    )
 
 # ---- Main ---- #
 def main():
@@ -83,7 +99,7 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
     criterion = nn.MSELoss()
 
-    weeks = load_dummy_week_data()
+    weeks = week_data()
     x, y = prepare_input(weeks)
 
     model.train()

@@ -61,7 +61,7 @@ class WeekViT(nn.Module):
         decoded = self.decoder(last_frame)  # [N, B, patch_area]
         decoded = decoded.permute(1, 0, 2)  # [B, N, patch_area]
         H_p = W_p = int(np.sqrt(self.num_patches))
-        out = decoded.view(B, 1, H_p, W_p, PATCH_SIZE, PATCH_SIZE)
+        out = decoded.reshape(B, 1, H_p, W_p, PATCH_SIZE, PATCH_SIZE)
         out = out.permute(0, 1, 2, 4, 3, 5).reshape(B, 1, IMAGE_SIZE, IMAGE_SIZE)
         return out
 

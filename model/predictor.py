@@ -53,9 +53,9 @@ class WeekViT(nn.Module):
         B, T, C, H, W = x.shape
         x = x.view(B * T, C, H, W)
         patches = self.patch_embed(x)  # [B*T, N, D]
-        patches = patches.view(B, T, self.num_patches, -1)  # [B, T, N, D]
+        patches = patches.reshape(B, T, self.num_patches, -1)  # [B, T, N, D]
         patches = self.temporal_pe(patches)
-        tokens = patches.view(B, T * self.num_patches, -1).permute(1, 0, 2)  # [seq_len, B, D]
+        tokens = patches.reshape(B, T * self.num_patches, -1).permute(1, 0, 2)  # [seq_len, B, D]
         encoded = self.encoder(tokens)  # [seq_len, B, D]
         last_frame = encoded[-self.num_patches:]  # [N, B, D]
         decoded = self.decoder(last_frame)  # [N, B, patch_area]

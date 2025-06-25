@@ -1,1 +1,18 @@
+data:
+  path: "/notebook_dir/public/mickellals-public/goes-16-2003-10-weeks.tmp.zarr"
+  variable: "CMI_C13"
+  lat_range: [25, 45]
+  lon_range: [-80, -64]
+  time_index: "2023-01-01T00:05:06.343806976"
+
+patching:
+  preserve_coords: true
+
+masking:
+  zero_fill_masked: true
+  mask_type: random
+
+model:
+  type: mae
+  patch_size: auto  
 

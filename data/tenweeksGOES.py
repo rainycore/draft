@@ -10,7 +10,7 @@ from math import isqrt, ceil
 zarr_path = "/notebook_dir/public/mickellals-public/goes-16-2003-10-weeks.tmp.zarr" 
 
 
-def load_and_slice_zarr(zarr_path, lat_range=(25, 45), lon_range=(-80, -64), time_index='2023-01-01T00:05:06.343806976'):
+def load_and_slice_zarr(zarr_path, lat_range, lon_range, time_index):
     """ opening and loading the dataset with specified features
 
     returns:
@@ -26,7 +26,7 @@ def load_and_slice_zarr(zarr_path, lat_range=(25, 45), lon_range=(-80, -64), tim
     return data
 
 
-def create_patches(dataarray, num_patches=800):
+def create_patches(dataarray, num_patches):
     """ splits the entire dataset into approx number of specified patches 
     (allows for slightly uneven patch sizes if shape doesn't divide evenly)
 
@@ -68,7 +68,7 @@ def create_patches(dataarray, num_patches=800):
 
     
 
-def apply_mask(patches, mask_ratio=0.15):
+def apply_mask(patches, mask_ratio):
     """ applies random mask to list of xarray.DataArray patches
 
     parameters:

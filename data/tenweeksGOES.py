@@ -8,9 +8,6 @@ import torch
 from torch.utils.data import Dataset
 from math import isqrt, ceil
 
-# path to data 
-zarr_path = "/notebook_dir/public/mickellals-public/goes-16-2003-10-weeks.tmp.zarr" 
-
 class tenweeksdata(Dataset):
     """
     PyTorch Dataset for GOES-16 Satellite Data that handles creating patches and masking 
